@@ -12,13 +12,28 @@ import (
 type UsersController struct {
 	UsersService services.IUsersService
 	EvaluationService services.IEvaluationService
+	CacheService services.ICacheSerive
 }
 
-func NewUserController(userService services.IUsersService, evaluationService services.IEvaluationService) *UsersController {
-	return &UsersController{ UsersService: userService, EvaluationService: evaluationService }
+func NewUserController(
+	userService services.IUsersService, 
+	evaluationService services.IEvaluationService,
+	cacheService services.ICacheSerive,
+) *UsersController {
+	return &UsersController{ 
+		UsersService: userService, 
+		EvaluationService: evaluationService,
+		CacheService: cacheService, 
+	}
 }
 
 func (uc *UsersController) GetUserByID(res http.ResponseWriter, req *http.Request) {
+	cachedRes, ok := uc.CacheService.GetValue(mux.Vars(req)["id"]);
+	if ok {
+		res.Write([]byte(cachedRes))
+		return
+	}
+
 	user, err := uc.UsersService.GetUserByID(mux.Vars(req)["id"])
 	if err != nil {
 		res.WriteHeader(http.StatusInternalServerError)
@@ -31,10 +46,14 @@ func (uc *UsersController) GetUserByID(res http.ResponseWriter, req *http.Reques
 		return
 	}
 	disrespectedUser := models.DisrespectedUser{
-		User: models.User{ ID: user.ID, Email: user.Email },
+		User: models.User{ ID: user.ID },
 		Evaluation: uc.EvaluationService.GenEvaluation(),
 	}
-	json.NewEncoder(res).Encode(disrespectedUser)
+	jsonDisrespectedUser, _ := json.Marshal(disrespectedUser) 
+	if !ok {
+		uc.CacheService.SetValue(mux.Vars(req)["id"], string(jsonDisrespectedUser))
+	}
+	res.Write(jsonDisrespectedUser)
 }
 
 func (uc *UsersController) AddUser(res http.ResponseWriter, req *http.Request) {

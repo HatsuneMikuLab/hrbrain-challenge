@@ -39,7 +39,11 @@ func connect2db(url string) *sql.DB {
 
 func InitRouter(db *sql.DB) http.Handler {
 	router := mux.NewRouter()
-	userCtrl := controllers.NewUserController(services.NewUserService(db), services.NewEvaluationService())
+	userCtrl := controllers.NewUserController(
+		services.NewUserService(db), 
+		services.NewEvaluationService(),
+		services.NewCacheService(),
+	)
 	router.Use(middlewares.SetHeadersMiddleware)
 	router.HandleFunc("/api/users", userCtrl.AddUser).Methods("POST")
 	router.HandleFunc("/api/users/{id}", userCtrl.GetUserByID).Methods("GET")
