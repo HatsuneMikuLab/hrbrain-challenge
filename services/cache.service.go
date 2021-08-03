@@ -25,7 +25,7 @@ func NewCacheService() *cacheService {
 func (cs *cacheService) SetValue(key string, value string) {
 	// add record to cache and set expire time as 10 minutes
 	cs.store[key] = &cacheItem{ 
-		ExpireAt: time.Now().Add(1 * time.Minute),
+		ExpireAt: time.Now().Add(10 * time.Minute),
 		Value: value,
 	}
 }

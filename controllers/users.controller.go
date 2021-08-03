@@ -46,7 +46,7 @@ func (uc *UsersController) GetUserByID(res http.ResponseWriter, req *http.Reques
 		return
 	}
 	disrespectedUser := models.DisrespectedUser{
-		User: models.User{ ID: user.ID },
+		ID: user.ID,
 		Evaluation: uc.EvaluationService.GenEvaluation(),
 	}
 	jsonDisrespectedUser, _ := json.Marshal(disrespectedUser) 

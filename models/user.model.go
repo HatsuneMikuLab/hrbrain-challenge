@@ -10,7 +10,7 @@ type User struct {
 }
 
 type DisrespectedUser struct {
-	User
+	ID string `json:"user"`
 	Evaluation string `json:"evaluation"`
 }
 
