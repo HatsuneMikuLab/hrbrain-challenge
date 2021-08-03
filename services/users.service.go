@@ -1,37 +1,42 @@
 package services
 
 import (
+	"regexp"
 	"github.com/HatsuneMikuLab/hrbrain-challenge/models"
 	"database/sql"
-	"context"
 )
 
 type IUsersService interface {
-	GetByID(ctx context.Context, id string) (*models.User, error)
-	Add(ctx context.Context, data *models.User) ([]string error)
+	GetUserByID(id string) (*models.User, error)
+	AddUser(data *models.User) ([]string, error)
 }
 
 type usersService struct {
 	DB *sql.DB
-	TableName string
 }
 
-func NewUserService(db *sql.DB, tableName string) *usersService {
-	return &usersService{ DB: db, TableName: tableName }
+func NewUserService(db *sql.DB) *usersService {
+	return &usersService{ DB: db }
 }
 
-func (us *usersService) GetByID(ctx context.Context, id string) (*models.User, error) {
+func (us *usersService) GetUserByID(id string) (*models.User, error) {
 	user := &models.User{}
-	row := us.DB.QueryRowContext(ctx, "SELECT * FROM ? WHERE user = ?", us.TableName, id)
-	err := row.Scan(user)
+	row := us.DB.QueryRow("SELECT * FROM users WHERE id = $1", id)
+	err := row.Scan(&user.ID, &user.Email)
+	if err != nil {
+		isNoRowsError, err := regexp.MatchString("sql.*", err.Error())
+		if err == nil && isNoRowsError {
+			return nil, nil
+		}
+	}
 	return user, err
 }
 
-func (us *usersService) Add(ctx context.Context, data *models.User) ([]string, error) {
+func (us *usersService) AddUser(data *models.User) ([]string, error) {
 	validationErrors := data.Validate()
-	if len(validationErrors) != 0 {
+	if len(validationErrors) > 0 {
 		return validationErrors, nil
 	}
-	_, err := us.DB.ExecContext(ctx, "INSERT INTO ? (user, email) VALUES (?, ?)", data.User, data.Email)
+	_, err := us.DB.Exec("INSERT INTO users (id, email) VALUES ($1, $2)", data.ID, data.Email)
 	return nil, err
 }
