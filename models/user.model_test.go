@@ -4,17 +4,17 @@ import (
 	"testing"
 )
 
+type TestCases map[*User]int
+
 func TestValidateFunc(t *testing.T) {
-	user := &User{ ID: "Ophelia", Email: "ophelia@gmail.com" }
-	if validationErrors := user.Validate(); len(validationErrors) > 0 {
-		t.Fatalf("Data %v should pass validation, but got validation errors %v", user, validationErrors)
+	testCases := TestCases{
+		&User{ ID: "Ophelia", Email: "ophelia@gmail.com" }: 0,
+		&User{ ID: "", Email: "ophelia@gmail.com" }: 1,
+		&User{ ID: "", Email: "ophelia@" }: 2,
 	}
-	user = &User{ ID: "", Email: "ophelia@gmail.com" }
-	if validationErrors := user.Validate(); len(validationErrors) != 1 {
-		t.Fatalf("Request with data %v should trigger 1 error, but got different number of errors %v", user, validationErrors)
-	}
-	user = &User{ ID: "", Email: "ophelia@" }
-	if validationErrors := user.Validate(); len(validationErrors) != 2 {
-		t.Fatalf("Request with data %v should trigger 2 errors, but got different number of errors %v", user, validationErrors)
+	for input, expectedOutput := range testCases {
+		if validationErrors := input.Validate(); len(validationErrors) != expectedOutput {
+			t.Fatalf("Input %v should result in %v validation erros, but got %v", input, expectedOutput, len(validationErrors))
+		}
 	}
 }
