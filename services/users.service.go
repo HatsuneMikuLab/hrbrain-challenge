@@ -8,7 +8,7 @@ import (
 
 type IUsersService interface {
 	GetUserByID(id string) (*models.User, error)
-	AddUser(data *models.User) ([]string, error)
+	AddUser(data *models.User) ([]string, bool, error)
 }
 
 type usersService struct {
@@ -28,15 +28,23 @@ func (us *usersService) GetUserByID(id string) (*models.User, error) {
 		if err == nil && isNoRowsError {
 			return nil, nil
 		}
+		return nil, err
 	}
 	return user, err
 }
 
-func (us *usersService) AddUser(data *models.User) ([]string, error) {
+func (us *usersService) AddUser(data *models.User) ([]string, bool, error) {
 	validationErrors := data.Validate()
 	if len(validationErrors) > 0 {
-		return validationErrors, nil
+		return validationErrors, false, nil
 	}
 	_, err := us.DB.Exec("INSERT INTO users (id, email) VALUES ($1, $2)", data.ID, data.Email)
-	return nil, err
+	if err != nil {
+		isDuplicateKeyError, err := regexp.MatchString("pq.*", err.Error())
+		if err == nil && isDuplicateKeyError {
+			return nil, true, nil
+		}
+		return nil, false, err
+	}
+	return nil, false, err
 }

@@ -63,7 +63,7 @@ func (uc *UsersController) AddUser(res http.ResponseWriter, req *http.Request) {
 		json.NewEncoder(res).Encode(map[string]string{ "error": "Invalid JSON." })
 		return
 	}
-	validationErrors, err := uc.UsersService.AddUser(data)
+	validationErrors, isExist, err := uc.UsersService.AddUser(data)
 	if err != nil {
 		fmt.Println(err)
 		res.WriteHeader(http.StatusInternalServerError)
@@ -73,6 +73,11 @@ func (uc *UsersController) AddUser(res http.ResponseWriter, req *http.Request) {
 	if len(validationErrors) > 0 {
 		res.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(res).Encode(map[string][]string{ "errors": validationErrors })
+		return
+	}
+	if isExist {
+		res.WriteHeader(http.StatusConflict)
+		json.NewEncoder(res).Encode(map[string]string{ "errors": "User with this ID or Email is already exist" })
 		return
 	}
 	res.WriteHeader(http.StatusCreated)
