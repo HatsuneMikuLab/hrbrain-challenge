@@ -1,12 +1,12 @@
 package main
 
 import (
+	"github.com/HatsuneMikuLab/hrbrain-challenge/db"
 	"time"
 	"os"
 	"net/http"
 	"database/sql"
 	"log"
-	_ "github.com/lib/pq"
 	"github.com/gorilla/mux"
 	"github.com/HatsuneMikuLab/hrbrain-challenge/services"
 	"github.com/HatsuneMikuLab/hrbrain-challenge/controllers"
@@ -16,25 +16,11 @@ import (
 
 func main() {
 	log.Println(os.Args[2])
-	db := connect2db(os.Args[2])
+	db := db.Connect2db(os.Args[2])
 	
 	router := InitRouter(db)
 	http.ListenAndServe(os.Args[1], router)
 }
-
-func connect2db(url string) *sql.DB {
-	//fmt.Println(sql.Drivers())
- 	db, err := sql.Open("postgres", url)
-	if err != nil {
-		log.Fatal(err)
-	}
-	err = db.Ping()
-	if err != nil {
-		log.Fatal(err)
-	}
-	return db
-}
-
 
 
 func InitRouter(db *sql.DB) http.Handler {
