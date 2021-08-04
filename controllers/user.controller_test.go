@@ -13,7 +13,7 @@ import (
 )
 
 func prepare4test() *UsersController {
-	db := db.Connect2db("postgres://hzvlouaa:Gy5nzrwrQnw8IH9emXtEdH-RNPdI0SAd@kashin.db.elephantsql.com/hzvlouaa")
+	db := db.Connect2db()
 	return NewUserController(
 		services.NewUserService(db), 
 		services.NewEvaluationService(),
