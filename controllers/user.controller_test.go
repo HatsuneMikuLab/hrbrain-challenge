@@ -13,7 +13,7 @@ import (
 )
 
 func prepare4test() *UsersController {
-	db := db.Connect2db()
+	db := db.Connect2db("") //put here your DB connection
 	return NewUserController(
 		services.NewUserService(db), 
 		services.NewEvaluationService(),
